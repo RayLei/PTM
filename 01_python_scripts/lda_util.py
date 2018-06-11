@@ -76,15 +76,17 @@ def vocab_write(vocab, file):
             f.write(wd + '\n')    
 
 
-def lda_out(doc_term_mat, vocab, directory, outfile_prefix, num_topics, n_top_words): 
+def lda_out(doc_term_mat, vocab, directory, outfile_prefix, num_topics, n_top_words, date_range): 
     model=lda.LDA(n_topics=num_topics,n_iter=1500,random_state=1)
     model.fit(doc_term_mat)
     topic_word=model.topic_word_
+    tpc_wds_file = directory + outfile_prefix + 'tpc_wds' + date_range + '.mat'
+    doc_tpc_file = directory + outfile_prefix + 'doc_tpc' + date_range + '.mat'
+
+    matrix_dump(topic_word, tpc_wds_file  )
+    matrix_dump(model.doc_topic_, doc_tpc_file)
     
-    matrix_dump(topic_word, directory, outfile_prefix, 'tpc_wds' )
-    matrix_dump(model.doc_topic_, directory, outfile_prefix, 'doc_tpc')
-    
-    with open(directory+outfile_prefix+str(num_topics)+'_120501_120531.txt','w+') as f:	 
+    with open(directory+outfile_prefix+str(num_topics)+ date_range + '.txt','w+') as f:	 
         for i, topic_dist in enumerate(topic_word):
             topic_words=np.array(sorted(vocab))[np.argsort(topic_dist)][:-(n_top_words+1):-1]
             f.write('Topic {0} : {1}\n'.format(i, ', '.join(topic_words).encode("utf-8")))
@@ -99,4 +101,14 @@ def vocab_load(file):
         voc=f.read()
     return voc
 
+def zero_row_remove(matrix):
+    org_shape = matrix.shape
+    print("Before removing nonzero rows, the doc_wds_mat shape is " , org_shape)
+    row_sum = np.squeeze(np.asarray(np.sum(matrix, axis=1)))
+    nonzero_rows = np.nonzero(row_sum)[0]
+    new_matrix = matrix[nonzero_rows,]
+    dropped_rows = set(range(org_shape[0])).difference(set(nonzero_rows))
+    print("After removing nonzero rows, the doc_wds_mat shape is " , new_matrix.shape)
+    print("The removed rows are ", dropped_rows)
+    return new_matrix
 

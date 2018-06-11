@@ -22,6 +22,10 @@ date_range = '160101_160131'
 mat_file = out_dir + out_prefix + 'doc_wds' + date_range + '.mat'
 voc_file = out_dir + out_prefix + 'vocab' + date_range + '.txt'
 
+# Row 9355 has all zero entries
+# Need to remove it.
+doc_wds_mat = lu.zero_row_remove(doc_wds_mat)
+
 lu.matrix_dump(doc_wds_mat, mat_file)
 lu.vocab_write(voc, voc_file)
 
